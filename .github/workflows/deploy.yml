@@ -1,0 +1,52 @@
+name: Deploy UnifiedGraph
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    name: Provision & Configure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 1. Terraform Kurulumu
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # 2. Terraform Apply (Altyapıyı Ayağa Kaldır)
+      - name: Terraform Apply
+        working-directory: ./infra
+        run: |
+          terraform init
+          terraform apply -auto-approve
+          # IP adresini alıp bir dosyaya yazıyoruz
+          terraform output -raw server_public_ip > ../server_ip.txt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # 3. SSH Anahtarını Hazırla
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Bilinmeyen host hatasını engellemek için StrictHostKeyChecking kapatılıyor
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
+      # 4. Ansible ile Sunucuyu Kur
+      - name: Run Ansible Playbook
+        run: |
+          SERVER_IP=$(cat server_ip.txt)
+          echo "Deploying to $SERVER_IP"
+
+          # Dinamik Inventory oluşturuyoruz
+          echo "[servers]" > inventory.ini
+          echo "$SERVER_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+
+          # Playbook'u çalıştır
+          ansible-playbook -i inventory.ini ansible/playbook.yml

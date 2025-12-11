@@ -1,0 +1,58 @@
+- hosts: all
+  become: true # Root yetkisiyle çalış
+  vars:
+    # Uygulamanın atılacağı klasör
+    app_dir: /opt/unified-graph
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Node.js and NPM
+      apt:
+        name:
+          - nodejs
+          - npm
+        state: present
+
+    - name: Create app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy Application Code
+      copy:
+        # Playbook dosyasının bir üst klasöründeki src'yi al
+        src: ../src/
+        dest: "{{ app_dir }}/src/"
+
+    - name: Copy package.json
+      copy:
+        src: ../package.json
+        dest: "{{ app_dir }}/"
+
+    - name: Install Dependencies
+      command: npm install
+      args:
+        chdir: "{{ app_dir }}"
+
+    - name: Install PM2 (Process Manager)
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Stop existing server (if any)
+      block:
+        - name: Ensure server is stopped
+          command: pm2 stop all
+      ignore_errors: true
+
+    - name: Start Application with PM2
+      command: pm2 start src/index.js --name gateway --update-env
+      args:
+        chdir: "{{ app_dir }}"
+      environment:
+        PORT: "4000"
