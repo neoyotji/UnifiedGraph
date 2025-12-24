@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - UnifiedGraph</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark);
+            color: var(--white);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: var(--dark-light);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-badge {
+            padding: 0.5rem 1rem;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Login Form */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-box {
+            background: var(--dark-light);
+            padding: 3rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .demo-users {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .demo-users strong {
+            color: var(--accent);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--dark-light);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--gray);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--dark-light);
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .role-user {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .status-success {
+            color: var(--success);
+        }
+
+        .status-failed {
+            color: var(--danger);
+        }
+
+        .query-text {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Panel Content */
+        .panel-content {
+            display: none;
+        }
+
+        .panel-content.active {
+            display: block;
+        }
+
+        /* Refresh Button */
+        .refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Section -->
+    <div id="login-section" class="login-container">
+        <div class="login-box">
+            <h2>Giriş Yap</h2>
+            <div id="error-msg" class="error-message" style="display: none;"></div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" id="username" required placeholder="admin veya user1">
+                </div>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" id="password" required placeholder="Şifre">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Giriş Yap</button>
+            </form>
+            <div class="demo-users">
+                <strong>Demo Kullanıcılar:</strong><br>
+                Admin: <code>admin / admin123</code><br>
+                User: <code>user1 / user123</code>
+            </div>
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="/" style="color: var(--gray);">← Ana Sayfaya Dön</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard-section" class="dashboard">
+        <header>
+            <div class="logo">UnifiedGraph Admin</div>
+            <div class="user-info">
+                <span id="user-name"></span>
+                <span id="user-role" class="user-badge"></span>
+                <button onclick="logout()" class="btn btn-danger">Çıkış</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total-queries">0</div>
+                    <div class="stat-label">Toplam Sorgu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-success">0</div>
+                    <div class="stat-label">Başarılı</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-failed">0</div>
+                    <div class="stat-label">Başarısız</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-users">0</div>
+                    <div class="stat-label">Kullanıcı</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('logs')">Sorgu Logları</button>
+                <button class="tab" onclick="showPanel('users')">Kullanıcılar</button>
+                <button class="tab" onclick="showPanel('stats')">İstatistikler</button>
+            </div>
+
+            <!-- Query Logs Panel -->
+            <div id="panel-logs" class="panel-content active">
+                <div class="refresh-btn">
+                    <button onclick="loadQueryLogs()" class="btn btn-primary">Yenile</button>
+                    <span style="color: var(--gray); font-size: 0.9rem;">Son 100 sorgu gösteriliyor</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Zaman</th>
+                                <th>Kullanıcı</th>
+                                <th>Rol</th>
+                                <th>Sorgu</th>
+                                <th>Süre</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Panel -->
+            <div id="panel-users" class="panel-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Kullanıcı Adı</th>
+                                <th>İsim</th>
+                                <th>Rol</th>
+                                <th>Kayıt Tarihi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div id="panel-stats" class="panel-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kullanıcı</th>
+                                <th>Toplam Sorgu</th>
+                                <th>Başarılı</th>
+                                <th>Başarısız</th>
+                                <th>Başarı Oranı</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stats-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Panel (Non-admin) -->
+            <div id="user-only-panel" style="display: none;">
+                <div class="table-container" style="padding: 2rem; text-align: center;">
+                    <h3>Hoş Geldiniz!</h3>
+                    <p style="color: var(--gray); margin-top: 1rem;">
+                        Sorgularınızı <a href="/" style="color: var(--primary);">ana sayfadaki</a> demo bölümünden
+                        yapabilirsiniz.
+                    </p>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">
+                        Admin panelini görmek için admin hesabıyla giriş yapın.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Check auth on load
+        if (authToken) {
+            checkAuth();
+        }
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:4000/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: `mutation { login(username: "${username}", password: "${password}") { token user { id username role name } } }`
+                    })
+                });
+
+                const data = await response.json();
+                if (data.errors) {
+                    showError(data.errors[0].message);
+                } else {
+                    authToken = data.data.login.token;
+                    currentUser = data.data.login.user;
+                    localStorage.setItem('authToken', authToken);
+                    showDashboard();
+                }
+            } catch (err) {
+                showError('Bağlantı hatası: ' + err.message);
+            }
+        });
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error-msg');
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await graphqlRequest('{ me { id username role name } }');
+                if (response.data?.me) {
+                    currentUser = response.data.me;
+                    showDashboard();
+                } else {
+                    logout();
+                }
+            } catch {
+                logout();
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').classList.add('active');
+            document.getElementById('user-name').textContent = currentUser.name;
+            document.getElementById('user-role').textContent = currentUser.role.toUpperCase();
+            document.getElementById('user-role').className = 'user-badge role-' + currentUser.role;
+
+            if (currentUser.role === 'admin') {
+                document.querySelector('.tabs').style.display = 'flex';
+                loadQueryLogs();
+                loadUsers();
+                loadStats();
+            } else {
+                document.querySelector('.tabs').style.display = 'none';
+                document.querySelectorAll('.panel-content').forEach(p => p.style.display = 'none');
+                document.getElementById('user-only-panel').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            document.getElementById('login-section').style.display = 'flex';
+            document.getElementById('dashboard-section').classList.remove('active');
+        }
+
+        async function graphqlRequest(query) {
+            const response = await fetch('http://localhost:4000/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ query })
+            });
+            return response.json();
+        }
+
+        async function loadQueryLogs() {
+            const response = await graphqlRequest('{ queryLogs(limit: 100) { id timestamp username role query operationName duration success error } }');
+            if (response.data?.queryLogs) {
+                const logs = response.data.queryLogs;
+                document.getElementById('stat-total-queries').textContent = logs.length;
+                document.getElementById('stat-success').textContent = logs.filter(l => l.success).length;
+                document.getElementById('stat-failed').textContent = logs.filter(l => !l.success).length;
+
+                const tbody = document.getElementById('logs-table');
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td>${new Date(log.timestamp).toLocaleString('tr-TR')}</td>
+                        <td>${log.username}</td>
+                        <td><span class="role-badge role-${log.role}">${log.role}</span></td>
+                        <td class="query-text" title="${log.query.replace(/"/g, '&quot;')}">${log.query.substring(0, 50)}...</td>
+                        <td>${log.duration}ms</td>
+                        <td class="${log.success ? 'status-success' : 'status-failed'}">${log.success ? '✓ Başarılı' : '✗ Hata'}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function loadUsers() {
+            const response = await graphqlRequest('{ allUsers { id username name role createdAt } }');
+            if (response.data?.allUsers) {
+                const users = response.data.allUsers;
+                document.getElementById('stat-users').textContent = users.length;
+
+                const tbody = document.getElementById('users-table');
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.name}</td>
+                        <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                        <td>${new Date(user.createdAt).toLocaleString('tr-TR')}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function loadStats() {
+            const response = await graphqlRequest('{ userStats { username total success failed } }');
+            if (response.data?.userStats) {
+                const stats = response.data.userStats;
+                const tbody = document.getElementById('stats-table');
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.username}</td>
+                        <td>${stat.total}</td>
+                        <td class="status-success">${stat.success}</td>
+                        <td class="status-failed">${stat.failed}</td>
+                        <td>${stat.total > 0 ? Math.round(stat.success / stat.total * 100) : 0}%</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function showPanel(panel) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel-content').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('panel-' + panel).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

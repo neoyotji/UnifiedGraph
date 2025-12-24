@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Girişi - UnifiedGraph</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 50%, var(--dark-light) 100%);
+            color: var(--white);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: var(--dark-light);
+            padding: 3rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-box h2 {
+            margin-bottom: 0.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--white), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-bottom: 1rem;
+            text-align: center;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 6px;
+            display: none;
+        }
+
+        .demo-users {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .demo-users code {
+            background: var(--dark);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .links {
+            margin-top: 1.5rem;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: var(--primary);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--gray);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-register {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--white);
+        }
+
+        .btn-register:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .register-form {
+            display: none;
+        }
+
+        .register-form.active {
+            display: block;
+        }
+
+        .login-form.hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h2>Kullanıcı Girişi</h2>
+        <p class="login-subtitle">GraphQL API'yi kullanmak için giriş yapın</p>
+
+        <div id="error-msg" class="error-message"></div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="login-form">
+            <div class="form-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" id="login-username" required placeholder="Kullanıcı adınız">
+            </div>
+            <div class="form-group">
+                <label>Şifre</label>
+                <input type="password" id="login-password" required placeholder="Şifreniz">
+            </div>
+            <button type="submit" class="btn btn-primary">Giriş Yap</button>
+
+            <div class="divider"><span>veya</span></div>
+
+            <button type="button" class="btn btn-register" onclick="showRegister()">Yeni Hesap Oluştur</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="register-form">
+            <div class="form-group">
+                <label>Ad Soyad</label>
+                <input type="text" id="reg-name" required placeholder="Adınız Soyadınız">
+            </div>
+            <div class="form-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" id="reg-username" required placeholder="Kullanıcı adı seçin">
+            </div>
+            <div class="form-group">
+                <label>Şifre</label>
+                <input type="password" id="reg-password" required placeholder="Şifre belirleyin">
+            </div>
+            <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+
+            <div class="divider"><span>veya</span></div>
+
+            <button type="button" class="btn btn-register" onclick="showLogin()">Giriş Yap</button>
+        </form>
+
+        <div class="demo-users">
+            <strong>Demo Kullanıcı:</strong><br>
+            <code>user1</code> / <code>user123</code>
+        </div>
+
+        <div class="links">
+            <a href="/">← Ana Sayfa</a>
+            <a href="/admin.html">Yönetici Girişi →</a>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            window.location.href = '/';
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('active');
+        }
+
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.remove('active');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-msg').style.display = 'none';
+        }
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch('http://localhost:4000/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: `mutation { login(username: "${username}", password: "${password}") { token user { id username role name } } }`
+                    })
+                });
+
+                const data = await response.json();
+                if (data.errors) {
+                    showError(data.errors[0].message);
+                } else {
+                    localStorage.setItem('authToken', data.data.login.token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.data.login.user));
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                showError('Bağlantı hatası: ' + err.message);
+            }
+        });
+
+        // Register
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const name = document.getElementById('reg-name').value;
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const response = await fetch('http://localhost:4000/graphql', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: `mutation { register(username: "${username}", password: "${password}", name: "${name}") { token user { id username role name } } }`
+                    })
+                });
+
+                const data = await response.json();
+                if (data.errors) {
+                    showError(data.errors[0].message);
+                } else {
+                    localStorage.setItem('authToken', data.data.register.token);
+                    localStorage.setItem('currentUser', JSON.stringify(data.data.register.user));
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                showError('Bağlantı hatası: ' + err.message);
+            }
+        });
+    </script>
+</body>
+
+</html>

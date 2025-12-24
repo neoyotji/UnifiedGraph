@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnifiedGraph Gateway - Güvenli GraphQL API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #1e293b;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 50%, var(--dark-light) 100%);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6rem 2rem 2rem;
+        }
+
+        .hero-content {
+            max-width: 900px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--white) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--gray);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .arch-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .arch-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .arch-box:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .arch-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .arch-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-box p {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Security Features */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .security-card {
+            background: linear-gradient(135deg, var(--dark-light), rgba(30, 41, 59, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .security-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .security-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .security-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .security-card ul {
+            list-style: none;
+        }
+
+        .security-card li {
+            padding: 0.5rem 0;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .security-card li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tech-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem 2rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .tech-item:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .tech-item span:first-child {
+            font-size: 2rem;
+        }
+
+        /* Live Demo */
+        .demo-section {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            padding: 3rem;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-input,
+        .demo-output {
+            background: var(--dark);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .demo-input h4,
+        .demo-output h4 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        #query-input {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: var(--white);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            resize: none;
+        }
+
+        #query-output {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.5rem;
+            color: var(--success);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            padding: 1rem;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .query-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .query-btn.run {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .query-btn.run:hover {
+            background: #0d9668;
+        }
+
+        .preset-btn {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .preset-btn:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Pipeline */
+        .pipeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 3rem 0;
+        }
+
+        .pipeline-step {
+            background: linear-gradient(135deg, var(--dark-light), var(--dark));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .pipeline-step.active {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .pipeline-arrow {
+            color: var(--gray);
+            font-size: 1.5rem;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            margin-top: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.8s ease;
+        }
+
+        /* N+1 Visualization */
+        .n1-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .n1-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .n1-box {
+            background: var(--dark);
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .n1-box.bad {
+            border-color: var(--danger);
+        }
+
+        .n1-box.good {
+            border-color: var(--success);
+        }
+
+        .n1-box h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .n1-box.bad h4 {
+            color: var(--danger);
+        }
+
+        .n1-box.good h4 {
+            color: var(--success);
+        }
+
+        .n1-requests {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .n1-requests .request {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .request-count {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 1rem;
+        }
+
+        .n1-box.bad .request-count {
+            color: var(--danger);
+        }
+
+        .n1-box.good .request-count {
+            color: var(--success);
+        }
+
+        /* Status indicator */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Auth Navigation */
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 1px solid var(--gray);
+            color: var(--white);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .nav-btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .nav-btn-logout {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .nav-btn-logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .user-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--dark-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-profile-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .role-tag {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-tag.admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .role-tag.user {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        /* User Panel */
+        .user-panel {
+            position: fixed;
+            top: 70px;
+            right: -400px;
+            width: 380px;
+            max-height: calc(100vh - 90px);
+            background: var(--dark-light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .user-panel.open {
+            right: 20px;
+        }
+
+        .user-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-panel-header h3 {
+            font-size: 1.2rem;
+        }
+
+        .user-panel-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-stat {
+            text-align: center;
+        }
+
+        .panel-stat .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .panel-stat .stat-value.success {
+            color: var(--success);
+        }
+
+        .panel-stat .stat-value.danger {
+            color: var(--danger);
+        }
+
+        .panel-stat .stat-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .user-panel-logs {
+            padding: 1.5rem;
+        }
+
+        .user-panel-logs h4 {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--dark);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .log-item .log-query {
+            color: var(--gray);
+            font-family: monospace;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .log-item .log-status.success {
+            color: var(--success);
+        }
+
+        .log-item .log-status.failed {
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            UnifiedGraph
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Özellikler</a></li>
+            <li><a href="#security">Güvenlik</a></li>
+            <li><a href="#demo">Demo</a></li>
+            <li><a href="#pipeline">CI/CD</a></li>
+        </ul>
+
+        <!-- Not Logged In -->
+        <div id="nav-guest" class="nav-auth">
+            <a href="/users.html" class="nav-btn">Kullanıcı Girişi</a>
+            <a href="/admin.html" class="nav-btn nav-btn-primary">Yönetici Girişi</a>
+        </div>
+
+        <!-- Logged In -->
+        <div id="nav-user" class="nav-auth" style="display: none;">
+            <button onclick="toggleUserPanel()" class="user-profile-btn">
+                <span id="nav-username">Kullanıcı</span>
+                <span id="nav-role" class="role-tag">user</span>
+            </button>
+            <button onclick="logout()" class="nav-btn nav-btn-logout">Çıkış</button>
+        </div>
+    </nav>
+
+    <!-- User Profile Panel (Slide in) -->
+    <div id="user-panel" class="user-panel">
+        <div class="user-panel-header">
+            <h3 id="panel-username">Kullanıcı</h3>
+            <span id="panel-role" class="role-tag">user</span>
+        </div>
+        <div class="user-panel-stats">
+            <div class="panel-stat">
+                <span class="stat-value" id="panel-total">0</span>
+                <span class="stat-label">Toplam Sorgu</span>
+            </div>
+            <div class="panel-stat">
+                <span class="stat-value success" id="panel-success">0</span>
+                <span class="stat-label">Başarılı</span>
+            </div>
+            <div class="panel-stat">
+                <span class="stat-value danger" id="panel-failed">0</span>
+                <span class="stat-label">Başarısız</span>
+            </div>
+        </div>
+        <div class="user-panel-logs">
+            <h4>Son Sorgularım</h4>
+            <div id="panel-logs-list"></div>
+        </div>
+        <div id="admin-link" style="display: none; padding: 1rem; text-align: center;">
+            <a href="/admin.html" class="nav-btn nav-btn-primary" style="display: inline-block;">Admin Paneline Git</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>GraphQL API Gateway</h1>
+            <p>Birden çok kaynağı tek şema altında toplayan, siber güvenlik odaklı API Gateway. N+1 sorgu problemi
+                çözümü ve kapsamlı güvenlik katmanları.</p>
+
+            <div class="badge-row">
+                <span class="badge">Rate Limiting</span>
+                <span class="badge">Query Depth Control</span>
+                <span class="badge">DataLoader</span>
+                <span class="badge">AWS Free Tier</span>
+                <span class="badge">Terraform + Ansible</span>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="#demo" class="btn btn-primary">Canlı Demo</a>
+                <a href="#security" class="btn btn-secondary">Güvenlik Özellikleri</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Güvenlik Katmanı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">IaC (Terraform)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">CLI Kullanımı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">N+1 Çözümü</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="features">
+        <div class="section-title">
+            <h2>🏗️ Mimari</h2>
+            <p>Tamamen Infrastructure as Code ile yönetilen güvenli altyapı</p>
+        </div>
+
+        <div class="architecture">
+            <div class="arch-diagram">
+                <div class="arch-box">
+                    <div class="arch-icon">🌐</div>
+                    <h4>İnternet</h4>
+                    <p>Kullanıcı İstekleri</p>
+                </div>
+                <div class="arch-box">
+                    <div class="arch-icon">🛡️</div>
+                    <h4>Rate Limiter</h4>
+                    <p>100 req/15dk</p>
+                </div>
+                <div class="arch-box">
+                    <div class="arch-icon">🔒</div>
+                    <h4>Security Group</h4>
+                    <p>Port: 22, 4000</p>
+                </div>
+                <div class="arch-box">
+                    <div class="arch-icon">⚡</div>
+                    <h4>GraphQL Gateway</h4>
+                    <p>Apollo Server</p>
+                </div>
+                <div class="arch-box">
+                    <div class="arch-icon">📦</div>
+                    <h4>DataLoader</h4>
+                    <p>N+1 Çözümü</p>
+                </div>
+                <div class="arch-box">
+                    <div class="arch-icon">📊</div>
+                    <h4>CloudWatch</h4>
+                    <p>Audit Logs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-stack">
+            <div class="tech-item">
+                <span>🔷</span>
+                <span>Terraform</span>
+            </div>
+            <div class="tech-item">
+                <span>🅰️</span>
+                <span>Ansible</span>
+            </div>
+            <div class="tech-item">
+                <span>☁️</span>
+                <span>AWS</span>
+            </div>
+            <div class="tech-item">
+                <span>🧪</span>
+                <span>Terratest</span>
+            </div>
+            <div class="tech-item">
+                <span>⚙️</span>
+                <span>GitHub Actions</span>
+            </div>
+            <div class="tech-item">
+                <span>📈</span>
+                <span>GraphQL</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- N+1 Problem -->
+    <section>
+        <div class="section-title">
+            <h2>🔄 N+1 Sorgu Problemi Çözümü</h2>
+            <p>DataLoader ile akıllı batching</p>
+        </div>
+
+        <div class="n1-demo">
+            <div class="n1-box bad">
+                <h4>❌ N+1 Problemi (Eski)</h4>
+                <div class="n1-requests">
+                    <div class="request">GET /posts</div>
+                    <div class="request">GET /users/1</div>
+                    <div class="request">GET /users/2</div>
+                    <div class="request">GET /users/3</div>
+                    <div class="request">GET /users/4</div>
+                    <div class="request">... (her post için ayrı istek)</div>
+                </div>
+                <div class="request-count">21 HTTP İstek</div>
+            </div>
+            <div class="n1-box good">
+                <h4>✅ DataLoader Çözümü (Yeni)</h4>
+                <div class="n1-requests">
+                    <div class="request">GET /posts</div>
+                    <div class="request">GET /users?id=1&id=2&id=3...</div>
+                    <div class="request" style="color: var(--success)">✨ Tüm user'lar tek istekte!</div>
+                </div>
+                <div class="request-count">2 HTTP İstek</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Features -->
+    <section id="security">
+        <div class="section-title">
+            <h2>🔐 Güvenlik Katmanları</h2>
+            <p>Uçtan uca siber güvenlik</p>
+        </div>
+
+        <div class="security-grid">
+            <div class="security-card">
+                <h3>🏗️ Altyapı (Terraform)</h3>
+                <ul>
+                    <li>VPC izolasyonu (10.0.0.0/16)</li>
+                    <li>IMDSv2 zorunlu</li>
+                    <li>Şifreli EBS volume</li>
+                    <li>IAM en az yetki prensibi</li>
+                    <li>Security Group sıkılaştırma</li>
+                </ul>
+            </div>
+            <div class="security-card">
+                <h3>⚡ Uygulama (GraphQL)</h3>
+                <ul>
+                    <li>Rate Limiting (100 req/15dk)</li>
+                    <li>Query Depth Limit (max 7)</li>
+                    <li>Query Complexity (max 1000)</li>
+                    <li>Helmet.js güvenlik başlıkları</li>
+                    <li>Production'da introspection kapalı</li>
+                </ul>
+            </div>
+            <div class="security-card">
+                <h3>🖥️ Sunucu (Ansible)</h3>
+                <ul>
+                    <li>SSH hardening</li>
+                    <li>Fail2ban brute-force koruması</li>
+                    <li>UFW firewall</li>
+                    <li>Non-root uygulama kullanıcısı</li>
+                    <li>Log rotation</li>
+                </ul>
+            </div>
+            <div class="security-card">
+                <h3>🔄 CI/CD (GitHub Actions)</h3>
+                <ul>
+                    <li>npm audit (dependency scan)</li>
+                    <li>njsscan (SAST)</li>
+                    <li>Gitleaks (secret detection)</li>
+                    <li>tfsec (Terraform scan)</li>
+                    <li>Terratest altyapı testleri</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CI/CD Pipeline -->
+    <section id="pipeline">
+        <div class="section-title">
+            <h2>🚀 CI/CD Pipeline</h2>
+            <p>Güvenlik taramalı otomatik deployment</p>
+        </div>
+
+        <div class="pipeline">
+            <div class="pipeline-step active">
+                <div>🔍</div>
+                <div>Security Scan</div>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+                <div>🛡️</div>
+                <div>tfsec</div>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+                <div>🧪</div>
+                <div>Terratest</div>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+                <div>🔷</div>
+                <div>Terraform</div>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+                <div>🅰️</div>
+                <div>Ansible</div>
+            </div>
+            <span class="pipeline-arrow">→</span>
+            <div class="pipeline-step active">
+                <div>✅</div>
+                <div>Smoke Test</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Demo -->
+    <section id="demo">
+        <div class="section-title">
+            <h2>🎮 Canlı Demo</h2>
+            <p>GraphQL API'yi deneyin</p>
+        </div>
+
+        <div class="demo-section">
+            <div class="demo-buttons" style="margin-bottom: 1rem;">
+                <button class="query-btn preset-btn" onclick="setQuery('health')">Health Check</button>
+                <button class="query-btn preset-btn" onclick="setQuery('posts')">Posts</button>
+                <button class="query-btn preset-btn" onclick="setQuery('users')">Users</button>
+                <button class="query-btn preset-btn" onclick="setQuery('nested')">Nested Query</button>
+            </div>
+
+            <div class="demo-container">
+                <div class="demo-input">
+                    <h4>📝 GraphQL Query</h4>
+                    <textarea id="query-input">{
+  health {
+    status
+    timestamp
+    environment
+  }
+}</textarea>
+                    <div class="demo-buttons">
+                        <button class="query-btn run" onclick="runQuery()">▶️ Çalıştır</button>
+                    </div>
+                </div>
+                <div class="demo-output">
+                    <h4>📤 Response</h4>
+                    <div id="query-output">// Sorgu çalıştırın...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>UnifiedGraph Gateway • GraphQL API Security • Terraform + Ansible + AWS Free Tier</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Made with 💜 for Cybersecurity
+        </p>
+    </footer>
+
+    <script>
+        // Auth state
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+        });
+
+        async function checkAuth() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser && authToken) {
+                currentUser = JSON.parse(savedUser);
+                showLoggedIn();
+                loadUserStats();
+            }
+        }
+
+        function showLoggedIn() {
+            document.getElementById('nav-guest').style.display = 'none';
+            document.getElementById('nav-user').style.display = 'flex';
+            document.getElementById('nav-username').textContent = currentUser.name;
+            document.getElementById('nav-role').textContent = currentUser.role;
+            document.getElementById('nav-role').className = 'role-tag ' + currentUser.role;
+
+            document.getElementById('panel-username').textContent = currentUser.name;
+            document.getElementById('panel-role').textContent = currentUser.role;
+            document.getElementById('panel-role').className = 'role-tag ' + currentUser.role;
+
+            if (currentUser.role === 'admin') {
+                document.getElementById('admin-link').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            authToken = null;
+            currentUser = null;
+            document.getElementById('nav-guest').style.display = 'flex';
+            document.getElementById('nav-user').style.display = 'none';
+            document.getElementById('user-panel').classList.remove('open');
+        }
+
+        function toggleUserPanel() {
+            const panel = document.getElementById('user-panel');
+            panel.classList.toggle('open');
+            if (panel.classList.contains('open')) {
+                loadUserStats();
+            }
+        }
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('user-panel');
+            const profileBtn = document.querySelector('.user-profile-btn');
+            if (!panel.contains(e.target) && !profileBtn?.contains(e.target)) {
+                panel.classList.remove('open');
+            }
+        });
+
+        async function loadUserStats() {
+            if (!authToken) return;
+
+            try {
+                // For admin: get all stats, for user: get their own logs
+                const query = currentUser.role === 'admin'
+                    ? '{ queryLogs(limit: 10) { timestamp query success } userStats { username total success failed } }'
+                    : `{ queryLogs(userId: "${currentUser.id}", limit: 10) { timestamp query success } }`;
+
+                const response = await fetch('http://localhost:4000/graphql', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+
+                if (data.data?.queryLogs) {
+                    const logs = data.data.queryLogs;
+                    const total = logs.length;
+                    const success = logs.filter(l => l.success).length;
+                    const failed = total - success;
+
+                    document.getElementById('panel-total').textContent = total;
+                    document.getElementById('panel-success').textContent = success;
+                    document.getElementById('panel-failed').textContent = failed;
+
+                    // Show recent logs
+                    const logsList = document.getElementById('panel-logs-list');
+                    if (logs.length === 0) {
+                        logsList.innerHTML = '<p style="color: var(--gray); font-size: 0.85rem;">Henüz sorgu yok</p>';
+                    } else {
+                        logsList.innerHTML = logs.slice(0, 5).map(log => `
+                            <div class="log-item">
+                                <span class="log-query">${log.query.substring(0, 30)}...</span>
+                                <span class="log-status ${log.success ? 'success' : 'failed'}">${log.success ? '✓' : '✗'}</span>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Stats loading error:', error);
+            }
+        }
+
+        const queries = {
+            health: `{
+  health {
+    status
+    timestamp
+    environment
+  }
+}`,
+            posts: `{
+  posts {
+    id
+    title
+    body
+  }
+}`,
+            users: `{
+  users {
+    id
+    name
+    email
+    company {
+      name
+    }
+  }
+}`,
+            nested: `{
+  posts {
+    id
+    title
+    user {
+      name
+      email
+      company {
+        name
+        catchPhrase
+      }
+    }
+  }
+}`
+        };
+
+        function setQuery(type) {
+            document.getElementById('query-input').value = queries[type];
+        }
+
+        async function runQuery() {
+            const query = document.getElementById('query-input').value;
+            const output = document.getElementById('query-output');
+
+            output.textContent = '⏳ Yükleniyor...';
+            output.style.color = '#f59e0b';
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch('http://localhost:4000/graphql', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ query }),
+                });
+
+                const data = await response.json();
+                output.textContent = JSON.stringify(data, null, 2);
+                output.style.color = data.errors ? '#ef4444' : '#10b981';
+
+                // Refresh stats if logged in
+                if (authToken) {
+                    setTimeout(loadUserStats, 500);
+                }
+            } catch (error) {
+                output.textContent = `❌ Hata: ${error.message}\n\nSunucunun çalıştığından emin olun:\nnpm run dev`;
+                output.style.color = '#ef4444';
+            }
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

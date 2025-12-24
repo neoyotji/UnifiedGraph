@@ -1,0 +1,28 @@
+# Fail2ban Local Configuration
+# Ansible tarafından yönetilir
+
+[DEFAULT]
+# Ban süresi: 1 saat
+bantime = 3600
+
+# Gözlem penceresi: 10 dakika
+findtime = 600
+
+# Max deneme sayısı
+maxretry = 5
+
+# Loglama
+loglevel = INFO
+logtarget = /var/log/fail2ban.log
+
+# Email bildirimleri (opsiyonel)
+# destemail = admin@example.com
+# action = %(action_mwl)s
+
+[sshd]
+enabled = true
+port = 22
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 7200

@@ -1,58 +1,278 @@
+---
+# Unified Graph Gateway - Hardened Deployment Playbook
+# =====================================================
+# Güvenlik odaklı sunucu yapılandırması
+
 - hosts: all
-  become: true # Root yetkisiyle çalış
+  become: true
+  
   vars:
-    # Uygulamanın atılacağı klasör
+    # Uygulama yapılandırması
     app_dir: /opt/unified-graph
+    app_user: nodeapp
+    app_group: nodeapp
+    node_env: production
+    app_port: 4000
+    
+    # Security settings
+    query_depth_limit: 7
+    query_complexity_limit: 1000
+    rate_limit_window_ms: 900000
+    rate_limit_max: 100
+    cors_origin: "*"
+    log_level: info
+    enable_audit_log: "true"
 
   tasks:
+    # =========================================
+    # SYSTEM UPDATES
+    # =========================================
     - name: Update apt cache
       apt:
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Install Node.js and NPM
+    - name: Upgrade all packages
+      apt:
+        upgrade: safe
+      when: ansible_os_family == "Debian"
+
+    # =========================================
+    # SECURITY HARDENING
+    # =========================================
+    - name: Install security packages
       apt:
         name:
-          - nodejs
-          - npm
+          - ufw
+          - fail2ban
+          - unattended-upgrades
+          - logrotate
         state: present
 
+    # SSH Hardening
+    - name: Configure SSH banner
+      copy:
+        src: templates/ssh_banner.j2
+        dest: /etc/ssh/banner
+        mode: "0644"
+
+    - name: Deploy hardened SSH config
+      template:
+        src: templates/sshd_config.j2
+        dest: /etc/ssh/sshd_config
+        mode: "0600"
+        validate: '/usr/sbin/sshd -t -f %s'
+      notify: Restart SSH
+
+    # Fail2ban
+    - name: Deploy fail2ban configuration
+      template:
+        src: templates/fail2ban.local.j2
+        dest: /etc/fail2ban/jail.local
+        mode: "0644"
+      notify: Restart fail2ban
+
+    - name: Enable and start fail2ban
+      service:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    # =========================================
+    # FIREWALL (UFW)
+    # =========================================
+    - name: Set UFW default deny incoming
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set UFW default allow outgoing
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow SSH through UFW
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Allow GraphQL API through UFW
+      ufw:
+        rule: allow
+        port: "{{ app_port }}"
+        proto: tcp
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+
+    # =========================================
+    # APPLICATION USER
+    # =========================================
+    - name: Create application group
+      group:
+        name: "{{ app_group }}"
+        state: present
+
+    - name: Create application user (no shell, no login)
+      user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        shell: /usr/sbin/nologin
+        home: "{{ app_dir }}"
+        create_home: no
+        system: yes
+        state: present
+
+    # =========================================
+    # NODE.JS INSTALLATION
+    # =========================================
+    - name: Install Node.js prerequisites
+      apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+
+    - name: Add NodeSource GPG key
+      apt_key:
+        url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+        state: present
+
+    - name: Add NodeSource repository
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_18.x {{ ansible_distribution_release }} main"
+        state: present
+        filename: nodesource
+
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+        update_cache: yes
+
+    # =========================================
+    # APPLICATION DEPLOYMENT
+    # =========================================
     - name: Create app directory
       file:
         path: "{{ app_dir }}"
         state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
         mode: "0755"
 
-    - name: Copy Application Code
+    - name: Create logs directory
+      file:
+        path: "{{ app_dir }}/logs"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0755"
+
+    - name: Copy application code
       copy:
-        # Playbook dosyasının bir üst klasöründeki src'yi al
         src: ../src/
         dest: "{{ app_dir }}/src/"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
 
     - name: Copy package.json
       copy:
         src: ../package.json
         dest: "{{ app_dir }}/"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0644"
 
-    - name: Install Dependencies
-      command: npm install
+    - name: Deploy environment file
+      template:
+        src: templates/app.env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0600"
+
+    - name: Install dependencies
+      command: npm install --production
       args:
         chdir: "{{ app_dir }}"
+      become_user: root
 
-    - name: Install PM2 (Process Manager)
+    - name: Set correct ownership
+      file:
+        path: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        recurse: yes
+
+    # =========================================
+    # PM2 PROCESS MANAGER
+    # =========================================
+    - name: Install PM2 globally
       npm:
         name: pm2
         global: yes
+        state: present
 
-    - name: Stop existing server (if any)
-      block:
-        - name: Ensure server is stopped
-          command: pm2 stop all
-      ignore_errors: true
+    - name: Stop existing server
+      command: pm2 delete gateway
+      ignore_errors: yes
 
-    - name: Start Application with PM2
-      command: pm2 start src/index.js --name gateway --update-env
+    - name: Start application with PM2
+      command: >
+        pm2 start src/index.js
+        --name gateway
+        --user {{ app_user }}
+        --env production
+        --log {{ app_dir }}/logs/app.log
+        --time
       args:
         chdir: "{{ app_dir }}"
       environment:
-        PORT: "4000"
+        NODE_ENV: "{{ node_env }}"
+        PORT: "{{ app_port }}"
+
+    - name: Save PM2 configuration
+      command: pm2 save
+
+    - name: Setup PM2 startup script
+      command: pm2 startup systemd -u root --hp /root
+      ignore_errors: yes
+
+    # =========================================
+    # LOG ROTATION
+    # =========================================
+    - name: Configure logrotate for application
+      copy:
+        content: |
+          {{ app_dir }}/logs/*.log {
+              daily
+              rotate 7
+              compress
+              delaycompress
+              missingok
+              notifempty
+              create 0640 {{ app_user }} {{ app_group }}
+              postrotate
+                  pm2 reloadLogs
+              endscript
+          }
+        dest: /etc/logrotate.d/unified-graph
+        mode: "0644"
+
+  # =========================================
+  # HANDLERS
+  # =========================================
+  handlers:
+    - name: Restart SSH
+      service:
+        name: sshd
+        state: restarted
+
+    - name: Restart fail2ban
+      service:
+        name: fail2ban
+        state: restarted

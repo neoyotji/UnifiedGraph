@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnifiedGraph Gateway - Sunum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #0ea5e9;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: white;
+        }
+
+        .presentation {
+            display: flex;
+            height: 100vh;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+        }
+
+        .presentation::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slide {
+            min-width: 100vw;
+            height: 100vh;
+            padding: 50px 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            scroll-snap-align: start;
+            background: white;
+            color: var(--dark);
+        }
+
+        .slide-center {
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--gray);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--light);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            margin: 3px;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--light);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .diagram-box {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+            color: var(--gray);
+        }
+
+        .arrow-down {
+            display: block;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin: 8px 0;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .comparison {
+            display: flex;
+            gap: 20px;
+        }
+
+        .comp-bad {
+            background: #fef2f2;
+            border: 2px solid var(--danger);
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .comp-good {
+            background: #f0fdf4;
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .comp-bad h3 {
+            color: var(--danger);
+        }
+
+        .comp-good h3 {
+            color: var(--success);
+        }
+
+        .big-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        pre {
+            background: var(--dark);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            text-align: left;
+            color: #e2e8f0;
+        }
+
+        code {
+            font-family: 'Consolas', monospace;
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: var(--primary);
+            transition: width 0.3s;
+            z-index: 100;
+        }
+
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        ul li {
+            padding: 6px 0;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        ul li::before {
+            content: "✓ ";
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: var(--light);
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .danger {
+            color: var(--danger);
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .slide-number {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress" id="progress"></div>
+
+    <div class="presentation" id="presentation">
+
+        <!-- 1. Kapak -->
+        <section class="slide slide-center">
+            <h1>UnifiedGraph Gateway</h1>
+            <p class="subtitle">GraphQL API Gateway + Infrastructure as Code</p>
+            <p style="margin: 30px 0; font-size: 1rem; color: var(--gray);">
+                Birden çok veri kaynağını tek şema altında toplayan, <br>
+                güvenlik odaklı API Gateway projesi
+            </p>
+            <div style="margin: 20px 0;">
+                <span class="badge">Şema Tasarımı</span>
+                <span class="badge">N+1 Engelleme</span>
+                <span class="badge">%100 IaC</span>
+            </div>
+            <div style="margin-top: 30px;">
+                <p style="font-size: 0.9rem; margin-bottom: 10px;">Kullanılan Teknolojiler:</p>
+                <span class="badge">Terraform</span>
+                <span class="badge">Ansible</span>
+                <span class="badge">Terratest</span>
+                <span class="badge">GitHub Actions</span>
+                <span class="badge">AWS Free Tier</span>
+            </div>
+        </section>
+
+        <!-- 2. Proje Amacı -->
+        <section class="slide">
+            <h2>Projenin Amacı</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Ne Yapıyor?</h3>
+                    <p>Bu proje, <span class="highlight">GraphQL API Gateway</span> oluşturarak birden fazla veri
+                        kaynağını tek bir API altında birleştirmeyi gösteriyor.</p>
+                    <ul style="margin-top: 15px;">
+                        <li>Users API'den kullanıcı verileri</li>
+                        <li>Posts API'den post verileri</li>
+                        <li>Companies bilgileri</li>
+                        <li>Tek bir /graphql endpoint'i</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                        <p style="margin: 0; color: var(--dark);"><strong>Önemli:</strong> Tüm altyapı <span
+                                class="highlight">%100 IaC</span> ile yönetiliyor - <span class="danger">CLI kullanımı
+                                0</span></p>
+                    </div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>Mimari Diyagram</h3>
+                    <div class="diagram-box" style="margin: 15px auto; max-width: 200px;">Frontend</div>
+                    <div class="arrow-down"></div>
+                    <div class="diagram-box"
+                        style="margin: 15px auto; max-width: 250px; background: #ede9fe; border-color: var(--primary);">
+                        GraphQL Gateway<br><small style="color: var(--gray);">/graphql</small>
+                    </div>
+                    <div class="arrow-down"></div>
+                    <div style="display: flex; justify-content: center; gap: 15px;">
+                        <div class="diagram-box" style="font-size: 0.85rem;">Users API</div>
+                        <div class="diagram-box" style="font-size: 0.85rem;">Posts API</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Problem: REST -->
+        <section class="slide">
+            <h2>Problem: Çoklu Veri Kaynakları</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Geleneksel REST Yaklaşımı</h3>
+                    <p>Modern uygulamalar birden fazla API'den veri çeker:</p>
+                    <pre style="margin: 15px 0;"><code>GET /users          → Kullanıcılar
+GET /posts          → Postlar
+GET /users/1        → Tek kullanıcı
+GET /posts?userId=1 → Kullanıcı postları</code></pre>
+                    <div style="margin-top: 15px;">
+                        <p class="danger" style="font-weight: 600;">Problemler:</p>
+                        <ul style="list-style: none;">
+                            <li style="color: var(--danger);">Her kaynak için ayrı endpoint</li>
+                            <li style="color: var(--danger);">Over-fetching (fazla veri)</li>
+                            <li style="color: var(--danger);">Under-fetching (eksik veri)</li>
+                            <li style="color: var(--danger);">Çok sayıda HTTP isteği</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <p style="color: var(--danger); font-weight: 600;">REST ile 4 API İsteği</p>
+                    <div class="diagram-box" style="margin: 20px auto; max-width: 150px;">Frontend</div>
+                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                        <span class="arrow">↓</span>
+                        <span class="arrow">↓</span>
+                        <span class="arrow">↓</span>
+                        <span class="arrow">↓</span>
+                    </div>
+                    <div class="grid-2" style="gap: 10px; margin-top: 10px;">
+                        <div class="diagram-box" style="font-size: 0.8rem; padding: 10px;">/users</div>
+                        <div class="diagram-box" style="font-size: 0.8rem; padding: 10px;">/posts</div>
+                        <div class="diagram-box" style="font-size: 0.8rem; padding: 10px;">/users/1</div>
+                        <div class="diagram-box" style="font-size: 0.8rem; padding: 10px;">/posts?id=1</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Çözüm: GraphQL -->
+        <section class="slide">
+            <h2>Çözüm: GraphQL API Gateway</h2>
+            <div class="grid-2">
+                <div class="card" style="text-align: center;">
+                    <p style="color: var(--success); font-weight: 600;">GraphQL ile 1 İstek = Tüm Veri</p>
+                    <div class="diagram-box" style="margin: 20px auto; max-width: 150px;">Frontend</div>
+                    <div class="arrow-down">TEK İSTEK</div>
+                    <div class="diagram-box"
+                        style="margin: 10px auto; max-width: 200px; background: #dcfce7; border-color: var(--success);">
+                        /graphql
+                    </div>
+                    <div class="arrow-down">↓</div>
+                    <div style="display: flex; justify-content: center; gap: 15px;">
+                        <div class="diagram-box" style="font-size: 0.85rem;">Users</div>
+                        <div class="diagram-box" style="font-size: 0.85rem;">Posts</div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="success">✓ GraphQL Avantajları</h3>
+                    <ul>
+                        <li>Tek endpoint (/graphql)</li>
+                        <li>Sadece istediğin veriyi al</li>
+                        <li>Güçlü tip sistemi (Schema)</li>
+                        <li>Self-documenting API</li>
+                        <li>İç içe sorgular (Nested Queries)</li>
+                        <li>Gerçek zamanlı (Subscriptions)</li>
+                    </ul>
+                    <pre style="margin-top: 15px;"><code>query {
+  posts {
+    title
+    user {
+      name
+      company { name }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Şema Tasarımı -->
+        <section class="slide">
+            <h2>GraphQL Şema Tasarımı</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Type Definitions (Tip Tanımları)</h3>
+                    <pre><code>type User {
+  id: ID!
+  name: String!
+  username: String!
+  email: String!
+  company: Company   # İç içe ilişki
+}
+
+type Company {
+  name: String
+  catchPhrase: String
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String!
+  user: User         # Her post → 1 user
+}
+
+type Query {
+  posts: [Post]      # Tüm postlar
+  users: [User]      # Tüm kullanıcılar
+  health: HealthCheck
+}</code></pre>
+                </div>
+                <div>
+                    <h3>Veri İlişkileri</h3>
+                    <div class="card" style="text-align: center; padding: 30px;">
+                        <div class="diagram-box" style="display: inline-block;">Query</div>
+                        <div class="arrow-down">↓</div>
+                        <div style="display: flex; justify-content: center; gap: 40px; margin: 15px 0;">
+                            <div>
+                                <div class="diagram-box">Post</div>
+                                <div class="arrow-down">↓ N:1</div>
+                                <div class="diagram-box" style="border-color: var(--success); background: #dcfce7;">User
+                                </div>
+                            </div>
+                            <div>
+                                <div class="diagram-box">User</div>
+                                <div class="arrow-down">↓ 1:1</div>
+                                <div class="diagram-box">Company</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                        <p style="margin: 0;"><strong>Dikkat:</strong> Post → User ilişkisi <span class="danger">N+1
+                                problemi</span> riski taşır!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. N+1 Problem -->
+        <section class="slide">
+            <h2>N+1 Sorgu Problemi</h2>
+            <p style="text-align: center; margin-bottom: 20px;">20 post için user bilgisi istendiğinde ne olur?</p>
+            <div class="comparison">
+                <div class="comp-bad">
+                    <h3>N+1 Problemi (Kötü)</h3>
+                    <pre style="font-size: 0.75rem; background: #450a0a;"><code>1. GET /posts         → 20 post döner
+
+2. GET /users/1       → Post 1'in user'ı
+3. GET /users/1       → Post 2'nin user'ı
+4. GET /users/2       → Post 3'ün user'ı
+5. GET /users/1       → Post 4'ün user'ı
+... (20 kez tekrar)</code></pre>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <span class="big-number" style="color: var(--danger);">21</span>
+                        <p style="color: var(--danger); font-weight: 600;">HTTP İstek!</p>
+                    </div>
+                </div>
+                <div class="comp-good">
+                    <h3>✓ DataLoader Çözümü (İyi)</h3>
+                    <pre style="font-size: 0.75rem; background: #052e16;"><code>1. GET /posts
+   → 20 post döner
+
+2. GET /users?id=1&id=2&id=3...
+   → TÜM user'lar tek seferde!</code></pre>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <span class="big-number" style="color: var(--success);">2</span>
+                        <p style="color: var(--success); font-weight: 600;">HTTP İstek!</p>
+                    </div>
+                </div>
+            </div>
+            <div
+                style="text-align: center; margin-top: 20px; padding: 15px; background: var(--light); border-radius: 8px;">
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--success);">%90 Azalma • 10x Daha
+                    Hızlı</span>
+            </div>
+        </section>
+
+        <!-- 7. DataLoader Kodu -->
+        <section class="slide">
+            <h2>DataLoader Implementasyonu</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>src/loaders.js</h3>
+                    <pre><code>const DataLoader = require('dataloader');
+const axios = require('axios');
+
+// Batch fonksiyonu
+const batchUsers = async (userIds) => {
+  // 1. Unique ID'leri al
+  const uniqueIds = [...new Set(userIds)];
+  
+  // 2. TEK İSTEK ile tüm user'ları getir
+  const { data } = await axios.get(
+    `/users?${uniqueIds.map(id => 
+      `id=${id}`).join('&')}`
+  );
+  
+  // 3. Orijinal sıraya göre map'le
+  return userIds.map(id => 
+    data.find(user => user.id === id)
+  );
+};
+
+// DataLoader instance
+const userLoader = new DataLoader(batchUsers);</code></pre>
+                </div>
+                <div>
+                    <h3>Nasıl Çalışır?</h3>
+                    <div class="grid-3" style="margin-top: 15px;">
+                        <div class="card" style="text-align: center; padding: 15px;">
+                            <div class="icon"></div>
+                            <h3 style="font-size: 1rem;">Batching</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Aynı tick'teki istekleri birleştirir</p>
+                        </div>
+                        <div class="card" style="text-align: center; padding: 15px;">
+                            <div class="icon"></div>
+                            <h3 style="font-size: 1rem;">Caching</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Aynı ID için tekrar istek yapmaz</p>
+                        </div>
+                        <div class="card" style="text-align: center; padding: 15px;">
+                            <div class="icon"></div>
+                            <h3 style="font-size: 1rem;">Performance</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Dramatik hız artışı sağlar</p>
+                        </div>
+                    </div>
+                    <h3 style="margin-top: 20px;">Resolver'da Kullanım</h3>
+                    <pre><code>const resolvers = {
+  Post: {
+    user: (parent) => {
+      // Tek tek istek yerine loader kullan
+      return userLoader.load(parent.userId);
+    }
+  }
+};</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. IaC Nedir -->
+        <section class="slide">
+            <h2>Infrastructure as Code (IaC) Nedir?</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Altyapıyı <span class="highlight">kod olarak</span>
+                tanımlama ve yönetme yaklaşımı</p>
+            <div class="comparison">
+                <div class="comp-bad">
+                    <h3>CLI (Manuel Yaklaşım)</h3>
+                    <pre style="font-size: 0.75rem; background: #450a0a;"><code>$ aws ec2 create-instance ...
+$ ssh root@server
+$ apt install nodejs
+$ npm install
+$ pm2 start app.js</code></pre>
+                    <ul style="list-style: none; margin-top: 15px;">
+                        <li style="color: var(--danger);"> Tekrarlanabilirlik zor</li>
+                        <li style="color: var(--danger);"> Versiyon kontrolü yok</li>
+                        <li style="color: var(--danger);"> Dokümantasyon manuel</li>
+                        <li style="color: var(--danger);"> Hata riski yüksek</li>
+                        <li style="color: var(--danger);"> Rollback imkansız</li>
+                    </ul>
+                </div>
+                <div class="comp-good">
+                    <h3> IaC (Otomatik Yaklaşım)</h3>
+                    <pre style="font-size: 0.75rem; background: #052e16;"><code># terraform apply
+# ansible-playbook deploy.yml
+# Otomatik olarak her şey yapılır!</code></pre>
+                    <ul style="margin-top: 15px;">
+                        <li>Her seferinde aynı sonuç</li>
+                        <li>Git ile versiyon kontrolü</li>
+                        <li>Kod = Dokümantasyon</li>
+                        <li>Hata riski düşük</li>
+                        <li>Kolay rollback</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+                <p style="margin: 0; font-size: 1.1rem;"><strong>Bu projede:</strong> <span class="highlight">%100
+                        IaC</span> kullanıldı - <span class="danger">CLI kullanımı 0</span></p>
+            </div>
+        </section>
+
+        <!-- 9. Terraform -->
+        <section class="slide">
+            <h2>Terraform - Altyapı Sağlama</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>infra/main.tf</h3>
+                    <pre><code># VPC Oluşturma
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+}
+
+# EC2 Instance
+resource "aws_instance" "app" {
+  ami           = "ami-xxx"
+  instance_type = "t2.micro"  # Free Tier!
+  
+  # IMDSv2 Güvenlik
+  metadata_options {
+    http_tokens = "required"
+  }
+  
+  # Şifreli Disk
+  root_block_device {
+    encrypted = true
+  }
+}
+
+# Security Group
+resource "aws_security_group" "app" {
+  ingress {
+    from_port = 22    # SSH
+    to_port   = 22
+  }
+  ingress {
+    from_port = 4000  # GraphQL
+    to_port   = 4000
+  }
+}</code></pre>
+                </div>
+                <div>
+                    <h3>Terraform Ne Yapar?</h3>
+                    <table>
+                        <tr>
+                            <th>Kaynak</th>
+                            <th>Açıklama</th>
+                        </tr>
+                        <tr>
+                            <td>VPC</td>
+                            <td>İzole ağ oluşturur</td>
+                        </tr>
+                        <tr>
+                            <td>Subnet</td>
+                            <td>Alt ağ tanımlar</td>
+                        </tr>
+                        <tr>
+                            <td>EC2</td>
+                            <td>Sunucu oluşturur</td>
+                        </tr>
+                        <tr>
+                            <td>Security Group</td>
+                            <td>Firewall kuralları</td>
+                        </tr>
+                        <tr>
+                            <td>IAM Role</td>
+                            <td>Yetki tanımları</td>
+                        </tr>
+                        <tr>
+                            <td>Key Pair</td>
+                            <td>SSH anahtarı</td>
+                        </tr>
+                    </table>
+                    <h3 style="margin-top: 20px;">AWS Free Tier</h3>
+                    <div class="card">
+                        <ul>
+                            <li>t2.micro instance</li>
+                            <li>Şifreli disk</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Ansible -->
+        <section class="slide">
+            <h2>Ansible - Sunucu Konfigürasyonu</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>ansible/playbook.yml</h3>
+                    <pre><code>- name: Sunucu Güvenlik Sıkılaştırma
+  hosts: app_servers
+  tasks:
+    # Node.js Kurulumu
+    - name: Node.js 18 Kur
+      apt:
+        name: nodejs
+        state: present
+    
+    # SSH Hardening
+    - name: SSH Konfigürasyonu
+      template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+    
+    # Firewall
+    - name: UFW Aktif Et
+      ufw:
+        state: enabled
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - 22    # SSH
+        - 4000  # GraphQL
+    
+    # Brute-force Koruması
+    - name: Fail2ban Kur
+      apt:
+        name: fail2ban
+        state: present</code></pre>
+                </div>
+                <div>
+                    <h3>Ansible Ne Yapar?</h3>
+                    <table>
+                        <tr>
+                            <th>Görev</th>
+                            <th>Açıklama</th>
+                        </tr>
+                        <tr>
+                            <td>Node.js</td>
+                            <td>Runtime kurulumu</td>
+                        </tr>
+                        <tr>
+                            <td>PM2</td>
+                            <td>Process yönetimi</td>
+                        </tr>
+                        <tr>
+                            <td>UFW</td>
+                            <td>Firewall yapılandırması</td>
+                        </tr>
+                        <tr>
+                            <td>Fail2ban</td>
+                            <td>Brute-force koruması</td>
+                        </tr>
+                        <tr>
+                            <td>SSH Hardening</td>
+                            <td>Root login kapatma</td>
+                        </tr>
+                        <tr>
+                            <td>Log Rotation</td>
+                            <td>Log yönetimi</td>
+                        </tr>
+                    </table>
+                    <h3 style="margin-top: 20px;">Güvenlik Özellikleri</h3>
+                    <div class="card">
+                        <ul>
+                            <li>Root login kapalı</li>
+                            <li>Şifreli auth kapalı</li>
+                            <li>Otomatik IP banlama</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. Terratest -->
+        <section class="slide">
+            <h2>Terratest ile Altyapı Testleri</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>test/security_group_test.go</h3>
+                    <pre><code>package test
+
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+)
+
+func TestSecurityGroupRules(t *testing.T) {
+    // SSH portu açık mı?
+    assert.True(t, isPortOpen(sg, 22))
+    
+    // GraphQL portu açık mı?
+    assert.True(t, isPortOpen(sg, 4000))
+    
+    // MySQL kapalı mı?
+    assert.False(t, isPortOpen(sg, 3306))
+}
+
+func TestNoWildcardIAM(t *testing.T) {
+    // IAM policy'de * yok mu?
+    policy := getIAMPolicy(role)
+    assert.NotContains(t, 
+        policy, "Action\": \"*\"")
+}</code></pre>
+                </div>
+                <div>
+                    <h3>Terratest Ne Yapar?</h3>
+                    <p>Go dilinde yazılmış altyapı testleri:</p>
+                    <div class="grid-2" style="margin-top: 15px;">
+                        <div class="card" style="text-align: center;">
+                            <h3 style="font-size: 1rem;">Security Group</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Port kuralları doğru mu?</p>
+                        </div>
+                        <div class="card" style="text-align: center;">
+                            <h3 style="font-size: 1rem;">VPC</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Ağ izolasyonu var mı?</p>
+                        </div>
+                        <div class="card" style="text-align: center;">
+                            <h3 style="font-size: 1rem;">IAM</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Least privilege sağlandı mı?</p>
+                        </div>
+                        <div class="card" style="text-align: center;">
+                            <h3 style="font-size: 1rem;">HTTP</h3>
+                            <p style="font-size: 0.8rem; margin: 0;">Endpoint çalışıyor mu?</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: var(--light); border-radius: 8px;">
+                        <p style="margin: 0;"><strong>Go dili kullanımı</strong> Terratest resmi olarak Go dilini
+                            destekler ve
+                            Terraform ile entegre çalışır.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12. GitHub Actions -->
+        <section class="slide">
+            <h2>GitHub Actions - CI/CD Pipeline</h2>
+            <div class="flow" style="margin: 20px 0;">
+                <div class="diagram-box" style="background: #fef3c7;">Push</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box">Security Scan</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box">tfsec</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box">Terratest</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box">Terraform</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box">Ansible</div>
+                <span class="arrow">→</span>
+                <div class="diagram-box" style="background: #dcfce7;">Deploy ✓</div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <h3>.github/workflows/deploy.yml</h3>
+                    <pre><code>name: Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Güvenlik Taramaları
+      - run: npm audit
+      - run: tfsec ./infra
+      
+      # 2. Altyapı Testleri  
+      - run: cd test && go test ./...
+      
+      # 3. Terraform Apply
+      - run: terraform apply -auto-approve
+      
+      # 4. Ansible Deploy
+      - run: ansible-playbook playbook.yml
+      
+      # 5. Smoke Test
+      - run: curl ${{ env.APP_URL }}/health</code></pre>
+                </div>
+                <div>
+                    <h3>Pipeline Adımları</h3>
+                    <table>
+                        <tr>
+                            <th>Adım</th>
+                            <th>Araç</th>
+                            <th>Açıklama</th>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>npm audit</td>
+                            <td>Bağımlılık güvenliği</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>tfsec</td>
+                            <td>Terraform güvenlik</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Terratest</td>
+                            <td>Altyapı testleri</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Terraform</td>
+                            <td>AWS provisioning</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Ansible</td>
+                            <td>Sunucu config</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>curl</td>
+                            <td>Smoke test</td>
+                        </tr>
+                    </table>
+                    <div class="card" style="margin-top: 15px;">
+                        <p style="margin: 0; font-size: 0.9rem;"><strong>Otomatik:</strong> main branch'e push
+                            yapıldığında tüm pipeline otomatik çalışır.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 13. Güvenlik Katmanları -->
+        <section class="slide">
+            <h2>Güvenlik Katmanları</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Uygulama Güvenliği</h3>
+                    <table>
+                        <tr>
+                            <th>Özellik</th>
+                            <th>Değer</th>
+                            <th>Açıklama</th>
+                        </tr>
+                        <tr>
+                            <td>Rate Limiting</td>
+                            <td>100 req/15dk</td>
+                            <td>DDoS koruması</td>
+                        </tr>
+                        <tr>
+                            <td>Query Depth</td>
+                            <td>Max 7</td>
+                            <td>DoS koruması</td>
+                        </tr>
+                        <tr>
+                            <td>Complexity</td>
+                            <td>Max 1000</td>
+                            <td>Kaynak koruması</td>
+                        </tr>
+                        <tr>
+                            <td>Helmet.js</td>
+                            <td>Aktif</td>
+                            <td>HTTP headers</td>
+                        </tr>
+                        <tr>
+                            <td>CORS</td>
+                            <td>Yapılandırılmış</td>
+                            <td>Origin kontrolü</td>
+                        </tr>
+                    </table>
+                </div>
+                <div>
+                    <h3>Altyapı Güvenliği</h3>
+                    <table>
+                        <tr>
+                            <th>Katman</th>
+                            <th>Teknoloji</th>
+                            <th>Açıklama</th>
+                        </tr>
+                        <tr>
+                            <td>Network</td>
+                            <td>VPC</td>
+                            <td>İzole ağ</td>
+                        </tr>
+                        <tr>
+                            <td>Access</td>
+                            <td>IAM</td>
+                            <td>Least privilege</td>
+                        </tr>
+                        <tr>
+                            <td>Data</td>
+                            <td>EBS Encryption</td>
+                            <td>Şifreli disk</td>
+                        </tr>
+                        <tr>
+                            <td>Instance</td>
+                            <td>IMDSv2</td>
+                            <td>Metadata güvenliği</td>
+                        </tr>
+                        <tr>
+                            <td>Firewall</td>
+                            <td>Security Group</td>
+                            <td>Port kontrolü</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <span class="badge" style="font-size: 1rem; padding: 10px 20px;">5 Güvenlik Katmanı</span>
+            </div>
+        </section>
+
+        <!-- 14. Kullanıcı Yönetimi -->
+        <section class="slide">
+            <h2>Kullanıcı Yönetimi ve Loglama</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>Kimlik Doğrulama (JWT)</h3>
+                    <pre><code>// Login Mutation
+mutation {
+  login(username: "admin", 
+        password: "admin123") {
+    token
+    user {
+      id
+      username
+      role
+    }
+  }
+}
+
+// Token kullanımı
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...</code></pre>
+                    <h3 style="margin-top: 15px;">Roller</h3>
+                    <div class="grid-2">
+                        <div class="card" style="text-align: center;">
+                            <p style="margin: 0; font-weight: 600; color: var(--danger);">Admin</p>
+                            <p style="font-size: 0.8rem; margin: 5px 0 0 0;">Tüm logları görür</p>
+                        </div>
+                        <div class="card" style="text-align: center;">
+                            <p style="margin: 0; font-weight: 600; color: var(--success);">User</p>
+                            <p style="font-size: 0.8rem; margin: 5px 0 0 0;">Kendi loglarını görür</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Sorgu Loglama</h3>
+                    <p>Tüm GraphQL sorguları loglanır:</p>
+                    <pre><code>{
+  "type": "QUERY_LOG",
+  "timestamp": "2024-12-12T12:00:00Z",
+  "userId": "1",
+  "username": "admin",
+  "role": "admin",
+  "query": "{ posts { id title } }",
+  "duration": 45,
+  "success": true
+}</code></pre>
+                    <div class="card" style="margin-top: 15px;">
+                        <h3 style="margin-bottom: 10px;">CloudWatch Entegrasyonu</h3>
+                        <p style="font-size: 0.9rem; margin: 0;">Loglar JSON formatında CloudWatch'a gönderilir. AWS
+                            Console'dan sorgu logları izlenebilir.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 15. Proje Yapısı -->
+        <section class="slide">
+            <h2>Proje Dosya Yapısı</h2>
+            <div class="grid-2">
+                <div>
+                    <pre style="font-size: 0.8rem;"><code>UnifiedGraph/
+├── 📁 src/                    # Uygulama Kodu
+│   ├── index.js               # GraphQL Server + Şema
+│   ├── loaders.js             # DataLoader (N+1 çözümü)
+│   ├── auth.js                # JWT Kimlik doğrulama
+│   ├── security.js            # Güvenlik middleware
+│   └── config.js              # Yapılandırma
+│
+├── 📁 infra/                  # Terraform (IaC)
+│   ├── main.tf                # Ana altyapı tanımları
+│   ├── variables.tf           # Değişkenler
+│   └── outputs.tf             # Çıktılar
+│
+├── 📁 ansible/                # Ansible (Config)
+│   ├── playbook.yml           # Ana playbook
+│   └── templates/             # Konfigürasyon şablonları
+│
+├── 📁 test/                   # Terratest (Go)
+│   ├── security_group_test.go
+│   ├── vpc_test.go
+│   └── iam_test.go
+│
+├── 📁 .github/workflows/      # GitHub Actions
+│   ├── deploy.yml             # CI/CD pipeline
+│   └── security-scan.yml      # Güvenlik taraması
+│
+└── 📁 public/                 # Web Arayüzü
+    ├── index.html             # Ana sayfa + Demo
+    ├── users.html             # Kullanıcı girişi
+    ├── admin.html             # Admin paneli
+    └── presentation.html      # Bu sunum</code></pre>
+                </div>
+                <div>
+                    <h3>Dosya Sayıları</h3>
+                    <table>
+                        <tr>
+                            <th>Kategori</th>
+                            <th>Dosya</th>
+                        </tr>
+                        <tr>
+                            <td>Uygulama (src/)</td>
+                            <td>5 dosya</td>
+                        </tr>
+                        <tr>
+                            <td>Terraform (infra/)</td>
+                            <td>3 dosya</td>
+                        </tr>
+                        <tr>
+                            <td>Ansible</td>
+                            <td>6+ dosya</td>
+                        </tr>
+                        <tr>
+                            <td>Terratest (test/)</td>
+                            <td>4 dosya</td>
+                        </tr>
+                        <tr>
+                            <td>GitHub Actions</td>
+                            <td>2 workflow</td>
+                        </tr>
+                        <tr>
+                            <td>Web Arayüzü</td>
+                            <td>4 dosya</td>
+                        </tr>
+                    </table>
+                    <h3 style="margin-top: 20px;">Önemli Notlar</h3>
+                    <div class="card">
+                        <ul style="font-size: 0.9rem;">
+                            <li>Tüm config dosyaları şablonlu (j2)</li>
+                            <li>Hassas veriler .gitignore'da tutuluyor</li>
+                            <li>Environment variables kullanılıyor</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 16. Özet -->
+        <section class="slide slide-center">
+            <h2>Özet ve Sonuç</h2>
+            <div class="grid-4" style="margin: 30px 0;">
+                <div class="card" style="text-align: center;">
+                    <div class="big-number">%100</div>
+                    <p>IaC Kapsama</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="big-number">%90</div>
+                    <p>N+1 Azalma</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="big-number">0</div>
+                    <p>CLI Kullanımı</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <div class="big-number">5</div>
+                    <p>Güvenlik Katmanı</p>
+                </div>
+            </div>
+            <h3 style="color: var(--dark); margin-bottom: 15px;">Kullandığım araç ve teknolojiler</h3>
+            <div style="margin-bottom: 30px;">
+                <span class="badge">GraphQL Schema</span>
+                <span class="badge">DataLoader</span>
+                <span class="badge">N+1 Problem</span>
+                <span class="badge">Terraform</span>
+                <span class="badge">Ansible</span>
+                <span class="badge">Terratest</span>
+                <span class="badge">GitHub Actions</span>
+                <span class="badge">AWS Free Tier</span>
+                <span class="badge">JWT Auth</span>
+                <span class="badge">Rate Limiting</span>
+            </div>
+        </section>
+
+    </div>
+
+    <div class="slide-number" id="slideNum">1 / 16</div>
+
+    <script>
+        const presentation = document.getElementById('presentation');
+        const totalSlides = 16;
+        let currentSlide = 0;
+
+        function updateProgress() {
+            document.getElementById('progress').style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+            document.getElementById('slideNum').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === ' ') {
+                currentSlide = Math.min(currentSlide + 1, totalSlides - 1);
+                presentation.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+                updateProgress();
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                currentSlide = Math.max(currentSlide - 1, 0);
+                presentation.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+                updateProgress();
+            }
+        });
+
+        // Mouse tıklama kontrolü
+        presentation.addEventListener('click', (e) => {
+            // Sol tık - ileri git
+            currentSlide = Math.min(currentSlide + 1, totalSlides - 1);
+            presentation.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+            updateProgress();
+        });
+
+        presentation.addEventListener('contextmenu', (e) => {
+            // Sağ tık - geri git
+            e.preventDefault(); // Sağ tık menüsünü engelle
+            currentSlide = Math.max(currentSlide - 1, 0);
+            presentation.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+            updateProgress();
+        });
+
+        presentation.addEventListener('scroll', () => {
+            currentSlide = Math.round(presentation.scrollLeft / window.innerWidth);
+            updateProgress();
+        });
+
+        updateProgress();
+    </script>
+</body>
+
+</html>

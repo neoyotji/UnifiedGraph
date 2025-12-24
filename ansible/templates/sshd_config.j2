@@ -1,0 +1,67 @@
+# Hardened SSH Configuration
+# Bu dosyayı /etc/ssh/sshd_config olarak kopyala
+# Ansible tarafından yönetilir
+
+# =====================================
+# TEMEL AYARLAR
+# =====================================
+Port 22
+AddressFamily inet
+ListenAddress 0.0.0.0
+
+# =====================================
+# AUTHENTICATION
+# =====================================
+# Root login devre dışı
+PermitRootLogin no
+
+# Şifre ile giriş devre dışı (sadece SSH key)
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+
+# SSH Key authentication aktif
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+
+# =====================================
+# SECURİTY
+# =====================================
+# Max authentication deneme sayısı
+MaxAuthTries 3
+
+# Bağlantı sınırları
+MaxSessions 4
+MaxStartups 10:30:60
+
+# Login süresi sınırı
+LoginGraceTime 30
+
+# X11 forwarding kapalı
+X11Forwarding no
+
+# Agent forwarding kapalı (güvenlik riski)
+AllowAgentForwarding no
+
+# TCP forwarding kapalı
+AllowTcpForwarding no
+
+# Boşta kalma timeout (5 dakika)
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# =====================================
+# LOGGING
+# =====================================
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# =====================================
+# BANNER
+# =====================================
+Banner /etc/ssh/banner
+
+# =====================================
+# ALLOWED USERS
+# =====================================
+AllowUsers ubuntu nodeapp

@@ -1,13 +1,57 @@
-# Node
+# Dependencies
 node_modules/
+package-lock.json
+
+# Environment files (secrets)
 .env
+.env.local
+.env.*.local
+*.env
 
 # Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.*
+infra/*.tfplan
+infra/tfplan
+infra/.terraform.lock.hcl
+*.tfvars
+!*.tfvars.example
 
-# OS
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# Security scan reports
+npm-audit-report.json
+eslint-report.json
+results.sarif
+
+# SSH keys (never commit)
+*.pem
+*.key
+id_rsa*
+*.pub
+
+# Ansible
+ansible/*.retry
+inventory.ini
+
+# Go test binaries
+test/*.test
+test/*.exe

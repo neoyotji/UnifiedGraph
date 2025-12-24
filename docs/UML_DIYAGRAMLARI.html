@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnifiedGraph - UML Diyagramları</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #6366f1;
+            margin: 30px 0 20px;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 10px;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .print-btn:hover {
+            background: #4f46e5;
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+
+            body {
+                background: white;
+                padding: 20px;
+            }
+
+            .diagram-container {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-btn" onclick="window.print()">PDF Olarak Kaydet</button>
+
+    <h1>UnifiedGraph Gateway - UML Diyagramları</h1>
+
+    <!-- USE CASE DİYAGRAMI -->
+    <h2>1. Use Case Diyagramı (Kullanım Senaryoları)</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            graph TB
+            subgraph Actors["Aktörler"]
+            A1["👤 Anonim Kullanıcı"]
+            A2["👤 Kayıtlı Kullanıcı"]
+            A3["👤 Admin"]
+            end
+
+            subgraph System["UnifiedGraph Gateway"]
+            UC1(("Posts Görüntüle"))
+            UC2(("Users Görüntüle"))
+            UC3(("Giriş Yap"))
+            UC4(("Kayıt Ol"))
+            UC5(("Profil Görüntüle"))
+            UC6(("Sorgu Logları"))
+            UC7(("Tüm Kullanıcılar"))
+            UC8(("Tüm Loglar"))
+            UC9(("İstatistikler"))
+            end
+
+            A1 --> UC1
+            A1 --> UC2
+            A1 --> UC3
+            A1 --> UC4
+
+            A2 --> UC1
+            A2 --> UC2
+            A2 --> UC5
+            A2 --> UC6
+
+            A3 --> UC1
+            A3 --> UC2
+            A3 --> UC5
+            A3 --> UC7
+            A3 --> UC8
+            A3 --> UC9
+        </div>
+    </div>
+
+    <!-- SINIF DİYAGRAMI -->
+    <h2>2. Sınıf Diyagramı (Class Diagram)</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            classDiagram
+            class User {
+            +String id
+            +String name
+            +String username
+            +String email
+            +Company company
+            }
+
+            class Company {
+            +String name
+            +String catchPhrase
+            }
+
+            class Post {
+            +String id
+            +String title
+            +String body
+            +User user
+            }
+
+            class AuthUser {
+            +String id
+            +String username
+            +String role
+            +String name
+            }
+
+            class AuthPayload {
+            +String token
+            +AuthUser user
+            }
+
+            class QueryLog {
+            +Int id
+            +String timestamp
+            +String userId
+            +String username
+            +String query
+            +Int duration
+            +Boolean success
+            }
+
+            class SecurityMiddleware {
+            +createDepthLimitPlugin()
+            +createComplexityPlugin()
+            +createAuditPlugin()
+            +rateLimitHandler()
+            }
+
+            class DataLoader {
+            +batchUsers()
+            +load()
+            }
+
+            User "1" --> "1" Company : has
+            Post "*" --> "1" User : belongs to
+            AuthPayload --> AuthUser : contains
+            DataLoader --> User : loads
+        </div>
+    </div>
+
+    <!-- SEQUENCE DİYAGRAMI - LOGIN -->
+    <h2>3. Sıralama Diyagramı - Kullanıcı Girişi</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            sequenceDiagram
+            participant C as 🖥️ Client
+            participant G as 🔷 GraphQL Gateway
+            participant A as 🔐 Auth Module
+            participant DB as 🗄️ User Store
+
+            C->>G: mutation login(username, password)
+            G->>A: loginUser(username, password)
+            A->>DB: users.get(username)
+            DB-->>A: user data
+            A->>A: verifyPassword()
+            A->>A: generateToken(user)
+            A-->>G: {token, user}
+            G-->>C: AuthPayload
+        </div>
+    </div>
+
+    <!-- SEQUENCE DİYAGRAMI - QUERY -->
+    <h2>4. Sıralama Diyagramı - GraphQL Sorgusu</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            sequenceDiagram
+            participant C as 🖥️ Client
+            participant RL as 🛡️ Rate Limiter
+            participant G as 🔷 GraphQL Gateway
+            participant DL as 📦 DataLoader
+            participant API as 🌐 JSONPlaceholder
+
+            C->>RL: POST /graphql
+            RL->>RL: Check rate limit
+            RL->>G: Forward request
+            G->>G: Validate depth & complexity
+            G->>API: GET /posts
+            API-->>G: posts[]
+            G->>DL: load(userId)
+            DL->>API: GET /users?id=1,2,3...
+            API-->>DL: users[]
+            DL-->>G: batched users
+            G-->>C: {data: {posts}}
+        </div>
+    </div>
+
+    <!-- ETKİLEŞİM DİYAGRAMI -->
+    <h2>5. Etkileşim/Bileşen Diyagramı</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            flowchart TB
+            subgraph CL["Client Layer"]
+            WEB["🌐 Web Browser"]
+            MOBILE["📱 Mobile App"]
+            end
+
+            subgraph GL["Gateway Layer"]
+            RL["🛡️ Rate Limiter"]
+            GQL["🔷 GraphQL Gateway"]
+            SEC["🔒 Security Plugins"]
+            AUTH["🔐 JWT Auth"]
+            end
+
+            subgraph DL["Data Layer"]
+            LOADER["📦 DataLoader"]
+            CACHE["💾 Memory Cache"]
+            end
+
+            subgraph EXT["External APIs"]
+            USERS["👥 Users API"]
+            POSTS["📝 Posts API"]
+            end
+
+            subgraph INFRA["Infrastructure"]
+            EC2["☁️ EC2 Instance"]
+            CW["📊 CloudWatch"]
+            end
+
+            WEB --> RL
+            MOBILE --> RL
+            RL --> GQL
+            GQL --> SEC
+            GQL --> AUTH
+            GQL --> LOADER
+            LOADER --> CACHE
+            LOADER --> USERS
+            LOADER --> POSTS
+            GQL --> CW
+            EC2 --> GQL
+        </div>
+    </div>
+
+    <!-- ER DİYAGRAMI -->
+    <h2>6. Veritabanı ER Diyagramı</h2>
+    <div class="diagram-container">
+        <div class="mermaid">
+            erDiagram
+            USERS {
+            string id PK
+            string username UK
+            string password
+            string role
+            string name
+            datetime createdAt
+            }
+
+            QUERY_LOGS {
+            int id PK
+            datetime timestamp
+            string userId FK
+            string username
+            string role
+            string query
+            string operationName
+            int duration
+            boolean success
+            string error
+            }
+
+            USERS ||--o{ QUERY_LOGS : "creates"
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: { curve: 'basis' }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,172 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches: ["main", "develop"]
+  push:
+    branches: ["main"]
+
+jobs:
+  # =========================================
+  # DEPENDENCY VULNERABILITY SCAN
+  # =========================================
+  npm-audit:
+    name: NPM Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run NPM Audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Generate Audit Report
+        run: npm audit --json > npm-audit-report.json || true
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: npm-audit-report.json
+          retention-days: 30
+
+  # =========================================
+  # STATIC APPLICATION SECURITY TESTING
+  # =========================================
+  sast:
+    name: SAST Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run njsscan (Node.js SAST)
+        uses: ajinabraham/njsscan-action@master
+        with:
+          args: './src --sarif --output results.sarif || true'
+
+      - name: Upload SARIF Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true
+
+  # =========================================
+  # SECRET SCANNING
+  # =========================================
+  secrets-scan:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better detection
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  # =========================================
+  # TERRAFORM SECURITY SCAN
+  # =========================================
+  tfsec:
+    name: Terraform Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
+          working_directory: ./infra
+
+  # =========================================
+  # TERRAFORM VALIDATE & PLAN
+  # =========================================
+  terraform-plan:
+    name: Terraform Plan Review
+    runs-on: ubuntu-latest
+    needs: [tfsec]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: ./infra
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Terraform Validate
+        working-directory: ./infra
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: ./infra
+        run: terraform plan -no-color -out=tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        continue-on-error: true
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: infra/tfplan
+          retention-days: 7
+
+  # =========================================
+  # ESLINT SECURITY RULES
+  # =========================================
+  eslint:
+    name: ESLint Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint src/ --format json --output-file eslint-report.json || true
+
+      - name: Upload ESLint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+          retention-days: 30
